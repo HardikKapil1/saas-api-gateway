@@ -11,7 +11,10 @@ export class TenantController {
   @Post('register')
   @ApiOperation({ summary: 'Register a new tenant' })
   @ApiResponse({ status: 201, description: 'Tenant created successfully' })
-  @ApiResponse({ status: 409, description: 'Tenant name or email already registered' })
+  @ApiResponse({
+    status: 409,
+    description: 'Tenant name or email already registered',
+  })
   async register(@Body() dto: CreateTenantDto) {
     const tenant = await this.tenantService.create(dto);
     const { password, ...result } = tenant;

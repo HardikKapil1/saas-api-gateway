@@ -8,6 +8,7 @@ import {
 import { ApiKeyService } from '../../api-key/api-key.service';
 import { RateLimitService } from '../../rate-limit/rate-limit.service';
 import { UsageService } from '../../usage/usage.service';
+import { BillingService } from '../../billing/billing.service';
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
@@ -15,6 +16,7 @@ export class ApiKeyGuard implements CanActivate {
     private apiKeyService: ApiKeyService,
     private rateLimitService: RateLimitService,
     private usageService: UsageService,
+    private billingService: BillingService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -28,6 +30,10 @@ export class ApiKeyGuard implements CanActivate {
     const apiKey = await this.apiKeyService.validateKey(key);
     if (!apiKey) throw new UnauthorizedException('Invalid or inactive API key');
 
+    // check monthly quota first
+    await this.billingService.checkAndIncrementQuota(apiKey.tenantId);
+
+    // then check rate limit
     const { allowed, remaining, resetIn } =
       await this.rateLimitService.isAllowed(apiKey.tenantId);
 
@@ -36,7 +42,6 @@ export class ApiKeyGuard implements CanActivate {
     request.rateLimit = { remaining, resetIn };
     request.startTime = startTime;
 
-    // log after response finishes
     response.on('finish', () => {
       this.usageService.log({
         tenantId: apiKey.tenantId,

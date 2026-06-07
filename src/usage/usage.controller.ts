@@ -1,7 +1,10 @@
 import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
 import {
-  ApiTags, ApiOperation, ApiResponse,
-  ApiBearerAuth, ApiQuery,
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { UsageService } from './usage.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -15,7 +18,11 @@ export class UsageController {
 
   @Get('stats')
   @ApiOperation({ summary: 'Get usage stats for tenant' })
-  @ApiQuery({ name: 'days', required: false, description: 'Number of days (default 7)' })
+  @ApiQuery({
+    name: 'days',
+    required: false,
+    description: 'Number of days (default 7)',
+  })
   @ApiResponse({ status: 200, description: 'Usage statistics' })
   getStats(@Request() req, @Query('days') days: string) {
     return this.usageService.getStats(req.user.id, days ? +days : 7);
@@ -23,7 +30,11 @@ export class UsageController {
 
   @Get('logs')
   @ApiOperation({ summary: 'Get recent request logs' })
-  @ApiQuery({ name: 'limit', required: false, description: 'Number of logs (default 20)' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of logs (default 20)',
+  })
   @ApiResponse({ status: 200, description: 'Recent logs' })
   getLogs(@Request() req, @Query('limit') limit: string) {
     return this.usageService.getRecentLogs(req.user.id, limit ? +limit : 20);

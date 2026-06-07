@@ -10,6 +10,7 @@ import { UsageModule } from './usage/usage.module';
 import { CommonModule } from './common/common.module';
 import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './config/winston.config';
+import { BillingModule } from './billing/billing.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { winstonConfig } from './config/winston.config';
     RateLimitModule,
     UsageModule,
     CommonModule,
+    BillingModule,
   ],
   controllers: [AppController],
   providers: [],
