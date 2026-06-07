@@ -3,24 +3,59 @@ import {
   Catch,
   ArgumentsHost,
   HttpException,
+  HttpStatus,
+  Inject,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import type { LoggerService } from '@nestjs/common';
 
-@Catch(HttpException)
-export class HttpExceptionFilter implements ExceptionFilter {
-  catch(exception: HttpException, host: ArgumentsHost) {
+@Catch()
+export class AllExceptionsFilter implements ExceptionFilter {
+  constructor(
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly logger: LoggerService,
+  ) {}
+
+  catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const status = exception.getStatus();
-    const exceptionResponse = exception.getResponse();
+    const request = ctx.getRequest<Request>();
 
-    response.status(status).json({
+    const status =
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
+
+    const message =
+      exception instanceof HttpException
+        ? exception.getResponse()
+        : 'Internal server error';
+
+    const errorResponse = {
       statusCode: status,
-      message:
-        typeof exceptionResponse === 'string'
-          ? exceptionResponse
-          : (exceptionResponse as any).message,
       timestamp: new Date().toISOString(),
-    });
+      path: request.url,
+      method: request.method,
+      message:
+        typeof message === 'string'
+          ? message
+          : (message as any).message || message,
+    };
+
+    if (status >= 500) {
+      this.logger.error(
+        `${request.method} ${request.url} ${status}`,
+        exception instanceof Error ? exception.stack : String(exception),
+        'ExceptionFilter',
+      );
+    } else {
+      this.logger.warn(
+        `${request.method} ${request.url} ${status} - ${errorResponse.message}`,
+        'ExceptionFilter',
+      );
+    }
+
+    response.status(status).json(errorResponse);
   }
 }
