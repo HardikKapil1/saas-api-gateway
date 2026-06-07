@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { ApiKeyModule } from './api-key/api-key.module';
 import { RateLimitModule } from './rate-limit/rate-limit.module';
 import { AppController } from './app.controller';
+import { UsageModule } from './usage/usage.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { AppController } from './app.controller';
     AuthModule,
     ApiKeyModule,
     RateLimitModule,
+    UsageModule,
+    CommonModule,
   ],
   controllers: [AppController],
   providers: [],
