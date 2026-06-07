@@ -1,6 +1,29 @@
 version: '3.8'
 
 services:
+  app:
+    build: .
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASS: root
+      DB_NAME: saas_gateway
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: your_super_secret_key
+      JWT_EXPIRES_IN: 7d
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./logs:/app/logs
+
   mysql:
     image: mysql:8
     restart: always
@@ -11,6 +34,11 @@ services:
       - '3306:3306'
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
