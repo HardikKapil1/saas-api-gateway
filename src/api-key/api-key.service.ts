@@ -42,7 +42,7 @@ export class ApiKeyService {
   async validateKey(key: string): Promise<ApiKey | null> {
     return this.apiKeyRepository.findOne({
       where: { key, isActive: true },
-      relations: {tenant: true},
+      relations: { tenant: true },
     });
   }
 }
